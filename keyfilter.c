@@ -3,9 +3,6 @@
 #include <ctype.h>
 #include <string.h>
 
-#define LINE_LENGHT 101
-#define ASCII 256
-
 // Function combines arguments of the input to one string
 void strCombiner(int sumArguments, char **arguments, char *search){
     int i=1;
@@ -115,8 +112,11 @@ void resultPrinter(int *enabledChars, char *lastInputLine, int shouldContinue){
     }
 }
 int main(int argc, char *argv[]){
+    #define LINE_LENGHT 101
+    #define ASCII 256
+
     char search[LINE_LENGHT]; // Searched string prefix, entered by user
-    char lastInputLine[LINE_LENGHT]; // Last saved line from the stdin
+    char lastInputLine[LINE_LENGHT] = {0}; // Last saved line from the stdin
     int enabledChars[ASCII] = {0}; // Enabled characters TODO: Make program that will work for unlimited duplicated chars
 
     // Converts all characters from string to upper case 
