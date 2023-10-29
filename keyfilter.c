@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 
 #define LINE_LENGHT 101
+#define ASCII 128
 
 // Function combines arguments of the input to one string
 void strCombiner(int sumArguments, char **arguments, char *search){
@@ -29,12 +31,12 @@ void str_upper(char *strng, char *vysledok){
     vysledok[dlzka] = '\0';
 }
 // Function iterates through chars of the line
-int line_reader(char *enabledChars, char *vyhlad, char *lastInputLine){
+int line_reader(int *enabledChars, char *vyhlad, char *lastInputLine){
     char line[LINE_LENGHT];
     int i = 0;
     int dlzka_vyhlad = strlen(vyhlad);
     int flag = 1; // Check for EOF
-    int areSame = 1; // Check for same strings
+    int areSame = 1; // Check for same PREFIXES
 
     line[i] = toupper(getchar());
     while (line[i] != '\n')
@@ -49,94 +51,73 @@ int line_reader(char *enabledChars, char *vyhlad, char *lastInputLine){
             break;
         }
         i++;
+        if (i > 100){
+            fprintf(stderr, "CHYBA: Priliš mnoho znakov.");
+            exit(1);
+        }
         line[i] = toupper(getchar());
 
     }
     line[i] = '\0';
     // If searched string correspond with line
-    // Ak sa zhoduje riadok s vyhladanim, appenduje sa nasledujuce pismenko riadka do listu pvl znakov
     if (areSame == 1){ 
         if ((i == dlzka_vyhlad) && (dlzka_vyhlad != 0)){
             strcpy(lastInputLine, line);
             flag = -1;
         }
         else{
-            char pismenko;
+            int pismenko;
 
             pismenko = line[dlzka_vyhlad];
-            int argLenght = strlen(enabledChars);
 
-            enabledChars[argLenght] = pismenko;
-            enabledChars[argLenght + 1] = '\0';
+            enabledChars[pismenko] += 1;
             strcpy(lastInputLine, line);
         }
     }
     return flag;
 }
-// Function sorts string of enabled chars alphabeticaly
-void sortAlpabeticaly(char *enabledChars, int n){
-    int i, j, min_index, temp;
-    for (i = 0; i < n; i++) {
-        // Find the minimum element in the unsorted part of the array
-        min_index = i;
-        for (j = i + 1; j < n; j++) {
-            if (enabledChars[j] < enabledChars[min_index]) {
-                min_index = j;
-            }
+// Function returns decision of enabledChars (1 = ENABLE, 0 = FOUND, -1 = NOT FOUND)
+int resultManager(int *enabledChars){
+    int isAlone=0;
+    for(int i=0; i < ASCII; i++){
+        if (enabledChars[i] == 1){
+            isAlone++;
         }
-        // Change minimum element with element at index i
-        temp = enabledChars[i];
-        enabledChars[i] = enabledChars[min_index];
-        enabledChars[min_index] = temp;
-    }
-}
-// Function removes duplicates by editing string of enabled chars
-void removeDuplicates(char *enabledChars, int n){
-    int temp = 1;
-    for (int i = 1; i < n + 1; i++) {
-        int j;
-        for (j = 0; j < temp; j++) {
-            if (enabledChars[i] == enabledChars[j]) {
-                break; // Character is already encountered, it's a duplicate
-            }
-        }
-        if (j == temp) {
-            enabledChars[temp] = enabledChars[i];
-            temp++;
+        else if (enabledChars[i] > 1 || isAlone > 1){
+            return 1;
         }
     }
-    enabledChars[temp] = '\0';
-}
-// Function sorts string of enabled chars
-void sort(char *enabledChars, int n){
-    sortAlpabeticaly(enabledChars, n);
-    removeDuplicates(enabledChars, n);
+    if (isAlone == 0){
+        return -1;
+    }
+    else if (isAlone == 1){
+        return 0;
+    }
+    return -2;
 }
 // Function prints results of the program
-void resultPrinter(char *enabledChars, char *lastInputLine, int shouldContinue){
-    int n = strlen(enabledChars);
-    if (n == 1){
+void resultPrinter(int *enabledChars, char *lastInputLine, int shouldContinue){
+    int n = resultManager(enabledChars);
+    if (n == 0 || shouldContinue == -1)
+    {
         printf("Found: %s\n", lastInputLine);
+    }
+    else if (n == 1){
+        printf("Enable: ");
+        for(int i = 0; i < ASCII; i++){
+            if (enabledChars[i] > 0){
+                printf("%c", i);
+            }
         }
+    }
     else {
-        if (shouldContinue != -1){
-            sort(enabledChars, n);
-            if (enabledChars[0] == '\0'){
-                printf("Not found\n");
-            }
-            else if (n > 1){
-                printf("Enable: %s\n", enabledChars);
-            }
-        }
-        else if (shouldContinue == -1){
-            printf("Found: %s\n", lastInputLine);
-        }
+        printf("Not found");
     }
 }
 int main(int argc, char *argv[]){
     char search[LINE_LENGHT]; // Searched string prefix, entered by user
     char lastInputLine[LINE_LENGHT]; // Last saved line from the stdin
-    char enabledChars[LINE_LENGHT]; // Enabled characters TODO: Make program that will work for unlimited duplicated chars
+    int enabledChars[ASCII] = {0}; // Enabled characters TODO: Make program that will work for unlimited duplicated chars
 
     // Converts all characters from string to upper case 
     str_upper(search, search); 
@@ -159,7 +140,7 @@ int main(int argc, char *argv[]){
     while (shouldContinue == 1){
         shouldContinue = line_reader(enabledChars, search, lastInputLine);
     }
-    
+
     resultPrinter(enabledChars, lastInputLine, shouldContinue);
 
     return 0;
