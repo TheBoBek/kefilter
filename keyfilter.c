@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define LINE_LENGHT 101
-#define ASCII 128
+#define ASCII 256
 
 // Function combines arguments of the input to one string
 void strCombiner(int sumArguments, char **arguments, char *search){
@@ -51,7 +51,7 @@ int line_reader(int *enabledChars, char *vyhlad, char *lastInputLine){
             break;
         }
         i++;
-        if (i > 100){
+        if (i > LINE_LENGHT - 1){
             fprintf(stderr, "CHYBA: Priliš mnoho znakov.");
             exit(1);
         }
